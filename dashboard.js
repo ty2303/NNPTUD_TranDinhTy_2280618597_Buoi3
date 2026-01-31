@@ -1,4 +1,4 @@
-// Dashboard Product Manager
+// Dashboard Product Manager - Step 5: All Features Complete
 const API_URL = 'https://api.escuelajs.co/api/v1/products';
 
 class ProductDashboard {
@@ -50,7 +50,7 @@ class ProductDashboard {
     }
 
     setupEventListeners() {
-        // Search by title with onChange
+        // Search by title with onChange (input event)
         document.getElementById('searchInput').addEventListener('input', (e) => {
             this.handleSearch(e.target.value);
         });
@@ -62,7 +62,7 @@ class ProductDashboard {
             this.render();
         });
 
-        // Sort buttons
+        // Step 4: Sort buttons
         document.querySelectorAll('th.sortable').forEach(th => {
             th.addEventListener('click', () => {
                 const column = th.dataset.column;
@@ -149,16 +149,10 @@ class ProductDashboard {
         const paginatedData = this.getPaginatedData();
 
         tbody.innerHTML = paginatedData.map(product => `
-            <tr>
+            <tr data-description="${this.escapeHtml(product.description || 'No description available')}">
                 <td>${product.id}</td>
                 <td>${this.escapeHtml(product.title)}</td>
                 <td class="price">$${product.price}</td>
-                <td class="description-cell">
-                    <span class="description-short">[Hover to view]</span>
-                    <div class="description-content">
-                        ${this.escapeHtml(product.description)}
-                    </div>
-                </td>
                 <td>
                     <span class="category-badge">
                         ${product.category ? this.escapeHtml(product.category.name) : 'N/A'}
@@ -174,6 +168,60 @@ class ProductDashboard {
                 </td>
             </tr>
         `).join('');
+
+        // Step 5: Setup hover description tooltip
+        this.setupDescriptionTooltip();
+    }
+
+    setupDescriptionTooltip() {
+        // Create tooltip element if not exists
+        let tooltip = document.getElementById('description-tooltip');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.id = 'description-tooltip';
+            tooltip.className = 'description-tooltip';
+            document.body.appendChild(tooltip);
+        }
+
+        // Add hover events to all rows
+        document.querySelectorAll('#tableBody tr').forEach(row => {
+            row.addEventListener('mouseenter', (e) => {
+                const description = row.getAttribute('data-description');
+                if (description) {
+                    tooltip.innerHTML = '<strong>Description:</strong><br>' + description;
+                    tooltip.classList.add('visible');
+                    this.positionTooltip(tooltip, e);
+                }
+            });
+
+            row.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('visible');
+            });
+
+            row.addEventListener('mousemove', (e) => {
+                if (tooltip.classList.contains('visible')) {
+                    this.positionTooltip(tooltip, e);
+                }
+            });
+        });
+    }
+
+    positionTooltip(tooltip, e) {
+        const offset = 15;
+        let left = e.clientX + offset;
+        let top = e.clientY + offset;
+
+        // Prevent tooltip from going off screen
+        const tooltipRect = tooltip.getBoundingClientRect();
+        if (left + tooltipRect.width > window.innerWidth) {
+            left = e.clientX - tooltipRect.width - offset;
+        }
+        if (top + tooltipRect.height > window.innerHeight) {
+            top = e.clientY - tooltipRect.height - offset;
+        }
+
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
     }
 
     renderPagination() {
